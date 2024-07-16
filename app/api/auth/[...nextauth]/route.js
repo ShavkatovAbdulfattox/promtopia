@@ -1,8 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-
 import User from "@models/user";
-import connectToDB from "@utils/database"; // Import connectToDB
+import connectToDB from "@utils/database";
 
 const handler = NextAuth({
   providers: [
@@ -21,27 +20,16 @@ const handler = NextAuth({
     },
     async signIn({ profile }) {
       try {
-        await connectToDB(); // Connect to the database
+        await connectToDB();
 
         // check if user already exists
         const userExists = await User.findOne({ email: profile.email });
-
         console.log(userExists);
-
         // if not, create a new document and save user in MongoDB
         if (!userExists) {
-          let username = profile.name.replace(" ", "").toLowerCase();
-          // Ensure the username meets the validation criteria
-          const usernameRegex = /^[a-z0-9]{8,20}$/;
-          if (!usernameRegex.test(username)) {
-            username = `${username.substring(0, 8)}${Math.random()
-              .toString(36)
-              .substring(2, 10)}`;
-          }
-
           await User.create({
             email: profile.email,
-            username: username,
+            username: profile.name.replace(" ", "").toLowerCase(),
             image: profile.picture,
           });
         }
